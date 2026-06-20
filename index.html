@@ -89,6 +89,21 @@
   .foot { margin-top: 13px; font-size: 0.72rem; color: var(--muted); }
   @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { li { animation: none; } }
+
+  .kb-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 4px; }
+  .kb-col { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
+  .kb-col-head { font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px;
+    display: flex; justify-content: space-between; align-items: center; }
+  .kb-col-head .kb-count { font-size: 0.7rem; background: var(--bg); border: 1px solid var(--line);
+    border-radius: 999px; padding: 1px 7px; }
+  .kb-card { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 9px 12px; font-size: 0.875rem; cursor: grab; }
+  .kb-card:active { cursor: grabbing; }
+  .kb-col.drag-over { background: oklch(0.93 0.045 152 / 0.3); }
+  .kb-empty { font-size: 0.75rem; color: var(--muted); text-align: center;
+    padding: 20px 0; font-style: italic; }
 </style>
 </head>
 <body>
@@ -96,6 +111,7 @@
 <script>
   const items = [];
   let interacted = false;
+  let currentView = 'home';
   const app = document.getElementById('app');
 
   // Event delegation — attached once to #app, survives every render()
@@ -104,12 +120,14 @@
     e.preventDefault();
     const name = document.getElementById('task-field').value.trim();
     if (!name) return;
-    items.push({ name });
+    items.push({ name, status: 'todo' });
     interacted = true;
     render();
   });
 
   app.addEventListener('click', (e) => {
+    const nav = e.target.closest('[data-nav]');
+    if (nav) { currentView = nav.dataset.nav; render(); return; }
     const del = e.target.closest('[data-del]');
     if (!del) return;
     items.splice(parseInt(del.dataset.del, 10), 1);
@@ -139,74 +157,144 @@
         <div class="avatar" aria-hidden="true">H</div>
       </header>`);
 
-    // ── Sidebar (aria-hidden — invisible to agent a11y tree) ─────────────
+    // ── Sidebar ──────────────────────────────────────────────────────────────
     shell.insertAdjacentHTML('beforeend', `
-      <nav class="sidebar" aria-hidden="true">
+      <nav class="sidebar">
         <div class="sidebar-label">Workspace</div>
-        <div class="nav-item active"><span class="nav-icon">⊞</span>Home</div>
-        <div class="nav-item"><span class="nav-icon">⊟</span>Kanban View</div>
+        <div class="nav-item${currentView === 'home' ? ' active' : ''}" data-nav="home"><span class="nav-icon">⊞</span>Home</div>
+        <div class="nav-item${currentView === 'kanban' ? ' active' : ''}" data-nav="kanban"><span class="nav-icon">⊟</span>Kanban View</div>
         <div class="nav-item"><span class="nav-icon">⚙</span>Settings</div>
       </nav>`);
 
     // ── Workspace ────────────────────────────────────────────────────────
     const ws = document.createElement('main');
     ws.className = 'workspace';
-    ws.insertAdjacentHTML('beforeend', `
-      <div class="ws-head">
-        <h1 class="ws-title">My Tasks</h1>
-        <span class="count">${plural(n, 'task')}</span>
-      </div>`);
 
-    const panel = document.createElement('div');
-    panel.className = 'panel';
+    if (currentView === 'home') {
+      ws.insertAdjacentHTML('beforeend', `
+        <div class="ws-head">
+          <h1 class="ws-title">My Tasks</h1>
+          <span class="count">${plural(n, 'task')}</span>
+        </div>`);
 
-    panel.insertAdjacentHTML('beforeend', `
-      <form id="add-form">
-        <label for="task-field">New task</label>
-        <div class="row">
-          <input id="task-field" type="text" placeholder="New task" autocomplete="off">
-          <button class="add" type="submit">Add</button>
-        </div>
-      </form>
-      <div class="tabs" aria-hidden="true">
-        <span class="tab active">All</span>
-        <span class="tab">Active</span>
-        <span class="tab">Completed</span>
-      </div>`);
+      const panel = document.createElement('div');
+      panel.className = 'panel';
 
-    if (upnext) {
-      const p = document.createElement('p');
-      p.className = 'upnext';
-      p.textContent = upnext;
-      panel.appendChild(p);
-    }
+      panel.insertAdjacentHTML('beforeend', `
+        <form id="add-form">
+          <label for="task-field">New task</label>
+          <div class="row">
+            <input id="task-field" type="text" placeholder="New task" autocomplete="off">
+            <button class="add" type="submit">Add</button>
+          </div>
+        </form>
+        <div class="tabs" aria-hidden="true">
+          <span class="tab active">All</span>
+          <span class="tab">Active</span>
+          <span class="tab">Completed</span>
+        </div>`);
 
-    if (n === 0) {
-      panel.insertAdjacentHTML('beforeend',
-        '<div class="empty"><strong>No tasks yet</strong><span>Add your first task above.</span></div>');
+      if (upnext) {
+        const p = document.createElement('p');
+        p.className = 'upnext';
+        p.textContent = upnext;
+        panel.appendChild(p);
+      }
+
+      if (n === 0) {
+        panel.insertAdjacentHTML('beforeend',
+          '<div class="empty"><strong>No tasks yet</strong><span>Add your first task above.</span></div>');
+      } else {
+        const ul = document.createElement('ul');
+        items.forEach((item, i) => {
+          const li = document.createElement('li');
+          const span = document.createElement('span');
+          span.textContent = item.name;
+          const del = document.createElement('button');
+          del.className = 'del'; del.type = 'button';
+          del.setAttribute('aria-label', 'delete task');
+          del.dataset.del = i;
+          del.textContent = '×';
+          li.append(span, del);
+          ul.appendChild(li);
+        });
+        panel.appendChild(ul);
+      }
+
+      const foot = document.createElement('p');
+      foot.className = 'foot';
+      foot.textContent = plural(n, 'item') + ' left';
+      panel.appendChild(foot);
+
+      ws.appendChild(panel);
     } else {
-      const ul = document.createElement('ul');
-      items.forEach((item, i) => {
-        const li = document.createElement('li');
-        const span = document.createElement('span');
-        span.textContent = item.name;
-        const del = document.createElement('button');
-        del.className = 'del'; del.type = 'button';
-        del.setAttribute('aria-label', 'delete task');
-        del.dataset.del = i;
-        del.textContent = '×';
-        li.append(span, del);
-        ul.appendChild(li);
+      // ── Kanban View ──────────────────────────────────────────────────────
+      ws.insertAdjacentHTML('beforeend', `
+        <div class="ws-head">
+          <h1 class="ws-title">Kanban Board</h1>
+          <span class="count">${plural(n, 'task')}</span>
+        </div>`);
+
+      const columns = [
+        { label: 'To Do',       status: 'todo' },
+        { label: 'In Progress', status: 'in-progress' },
+        { label: 'Done',        status: 'done' },
+      ];
+
+      const board = document.createElement('div');
+      board.className = 'kb-board';
+
+      columns.forEach(({ label, status }) => {
+        const col = document.createElement('div');
+        col.className = 'kb-col';
+
+        const colItems = items.filter(item => item.status === status);
+
+        const head = document.createElement('div');
+        head.className = 'kb-col-head';
+        head.innerHTML = `${label}<span class="kb-count">${colItems.length}</span>`;
+        col.appendChild(head);
+
+        if (colItems.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'kb-empty';
+          empty.textContent = 'Drop tasks here';
+          col.appendChild(empty);
+        } else {
+          colItems.forEach((item) => {
+            const idx = items.indexOf(item);
+            const card = document.createElement('div');
+            card.className = 'kb-card';
+            card.draggable = true;
+            card.textContent = item.name;
+            card.addEventListener('dragstart', (e) => {
+              e.dataTransfer.setData('text/plain', String(idx));
+            });
+            col.appendChild(card);
+          });
+        }
+
+        col.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          col.classList.add('drag-over');
+        });
+        col.addEventListener('dragleave', () => {
+          col.classList.remove('drag-over');
+        });
+        col.addEventListener('drop', (e) => {
+          e.preventDefault();
+          col.classList.remove('drag-over');
+          const idx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+          items[idx].status = status;
+          render();
+        });
+
+        board.appendChild(col);
       });
-      panel.appendChild(ul);
+
+      ws.appendChild(board);
     }
 
-    const foot = document.createElement('p');
-    foot.className = 'foot';
-    foot.textContent = plural(n, 'item') + ' left';
-    panel.appendChild(foot);
-
-    ws.appendChild(panel);
     shell.appendChild(ws);
     app.appendChild(shell);
   }
