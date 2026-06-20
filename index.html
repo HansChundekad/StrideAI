@@ -4,63 +4,68 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TaskFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg:          oklch(0.97 0.012 95);
-    --surface:     oklch(0.99 0.006 95);
+    --surface:     oklch(1 0 0);
     --header-bg:   oklch(0.99 0.005 95);
-    --sidebar-bg:  oklch(0.21 0.016 140);
+    --sidebar-bg:  oklch(0.19 0.018 145);
     --ink:         oklch(0.22 0.012 140);
     --ink-inv:     oklch(0.97 0.008 95);
     --muted:       oklch(0.52 0.018 130);
     --muted-inv:   oklch(0.65 0.018 140);
     --line:        oklch(0.9 0.01 110);
     --line-inv:    oklch(0.31 0.018 140);
-    --green:       oklch(0.52 0.15 152);
+    --green:       oklch(0.50 0.16 150);
     --green-deep:  oklch(0.4 0.12 152);
     --green-soft:  oklch(0.93 0.045 152);
     --on-green:    oklch(0.98 0.01 150);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
-  body { font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  body { font: 400 15px/1.6 'Inter', ui-sans-serif, system-ui, sans-serif;
     background: var(--bg); color: var(--ink); }
   #app { display: contents; }
-  .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 52px 1fr; min-height: 100vh; }
+  .shell { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 58px 1fr; min-height: 100vh; }
 
   .header { grid-column: 1/-1; display: flex; align-items: center; justify-content: space-between;
     padding: 0 22px; background: var(--header-bg); border-bottom: 1px solid var(--line);
-    position: sticky; top: 0; z-index: 10; }
+    position: sticky; top: 0; z-index: 10;
+    box-shadow: 0 1px 0 var(--line), 0 2px 8px oklch(0.2 0.02 140 / 0.04); }
   .brand { display: flex; align-items: center; gap: 9px; }
   .logo { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px;
     background: var(--green); color: var(--on-green); font-size: 0.95rem; font-weight: 700; }
-  .brand-name { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
-  .brand-tag { font-size: 0.72rem; color: var(--muted); margin-left: 3px; }
+  .brand-name { font-family: 'Plus Jakarta Sans', ui-sans-serif, sans-serif; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.025em; }
+  .brand-tag { font-size: 0.75rem; color: var(--muted); margin-left: 3px; }
   .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--green-soft);
     border: 2px solid var(--green); display: grid; place-items: center;
     font-size: 0.75rem; font-weight: 700; color: var(--green-deep); }
 
   .sidebar { grid-column: 1; grid-row: 2; background: var(--sidebar-bg);
     padding: 18px 10px; display: flex; flex-direction: column; gap: 2px; }
-  .sidebar-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.09em;
+  .sidebar-section { padding-bottom: 16px; border-bottom: 1px solid var(--line-inv); margin-bottom: 8px; }
+  .sidebar-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
     text-transform: uppercase; color: var(--muted-inv); padding: 0 10px; margin-bottom: 6px; }
   .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px;
     color: var(--muted-inv); font-size: 0.85rem; cursor: default;
-    transition: background 120ms, color 120ms; }
+    transition: background 180ms ease, color 180ms ease; }
   .nav-item:hover { background: var(--line-inv); color: var(--ink-inv); }
   .nav-item.active { background: oklch(0.28 0.055 152); color: var(--on-green); }
   .nav-icon { width: 18px; text-align: center; font-size: 0.95rem; }
 
-  .workspace { grid-column: 2; grid-row: 2; padding: 30px 36px; overflow-y: auto; }
-  .ws-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
-  .ws-title { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.025em; }
-  .count { padding: 3px 10px; font-size: 0.72rem; font-weight: 600;
+  .workspace { grid-column: 2; grid-row: 2; padding: 36px 44px; overflow-y: auto;
+    box-shadow: inset 1px 0 0 var(--line);
+    animation: fadeIn 200ms ease; }
+  .ws-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 28px; }
+  .ws-title { font-family: 'Plus Jakarta Sans', ui-sans-serif, sans-serif; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; }
+  .count { padding: 3px 10px; font-size: 0.75rem; font-weight: 600;
     color: var(--green-deep); background: var(--green-soft); border-radius: 999px; }
 
-  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 13px;
-    padding: 20px; max-width: 500px; }
-  form { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  label { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px; }
+  form { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-width: 480px; }
+  label { font-size: 0.72rem; font-weight: 500; color: var(--muted); }
   .row { display: flex; gap: 7px; }
   input { flex: 1; min-width: 0; padding: 9px 12px; font: inherit; color: var(--ink);
     background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
@@ -70,28 +75,30 @@
   .add { padding: 9px 17px; font-weight: 600; color: var(--on-green); background: var(--green); }
   .add:hover { filter: brightness(1.07); }
   .tabs { display: flex; gap: 2px; margin-bottom: 14px; }
-  .tab { padding: 5px 11px; font-size: 0.72rem; font-weight: 600; border-radius: 6px;
+  .tab { padding: 5px 11px; font-size: 0.75rem; font-weight: 600; border-radius: 6px;
     color: var(--muted); cursor: default; user-select: none; }
   .tab.active { color: var(--green-deep); background: var(--green-soft); }
   .upnext { margin-bottom: 11px; font-size: 0.75rem; font-weight: 600; color: var(--green-deep); }
-  .empty { display: grid; place-items: center; gap: 4px; min-height: 84px; text-align: center;
+  .empty { display: grid; place-items: center; gap: 4px; min-height: 120px; text-align: center;
     color: var(--muted); border: 1px dashed var(--line); border-radius: 9px; }
-  .empty strong { color: var(--ink); font-size: 0.92rem; }
+  .empty strong { color: var(--ink); font-size: 0.95rem; display: block; margin-bottom: 4px; }
   .empty span { font-size: 0.75rem; }
   ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
-  li { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px;
-    background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+  li { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 14px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
     animation: rise 200ms cubic-bezier(0.22, 1, 0.36, 1); }
   li span { flex: 1; min-width: 0; word-break: break-word; font-size: 0.875rem; }
   .del { display: grid; place-items: center; width: 27px; height: 27px; flex: none;
-    font-size: 1.05rem; color: var(--muted); background: transparent; border: 1px solid var(--line); }
+    font-size: 1.05rem; color: var(--muted); background: transparent; border: 1px solid var(--line);
+    border-radius: 8px; }
   .del:hover { color: oklch(0.55 0.2 25); border-color: oklch(0.55 0.2 25 / 0.4); }
-  .foot { margin-top: 13px; font-size: 0.72rem; color: var(--muted); }
+  .foot { margin-top: 13px; font-size: 0.75rem; color: var(--muted); }
   @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeIn { from { opacity: 0.6; } to { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { li { animation: none; } }
 
-  .status-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
-    font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+  .status-badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
   .status-badge.s-todo { color: var(--muted); background: var(--bg); border: 1px solid var(--line); }
   .status-badge.s-inprogress { color: oklch(0.45 0.12 80); background: oklch(0.96 0.04 80); border: 1px solid oklch(0.88 0.06 80); }
   .status-badge.s-done { color: var(--green-deep); background: var(--green-soft); }
@@ -104,15 +111,17 @@
   .task-done { text-decoration: line-through; opacity: 0.5; }
 
   .kb-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 4px; }
-  .kb-col { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-    padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
-  .kb-col-head { font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  .kb-col { background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
+  .kb-col-head { font-family: 'Plus Jakarta Sans', ui-sans-serif, sans-serif; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px;
     display: flex; justify-content: space-between; align-items: center; }
   .kb-col-head .kb-count { font-size: 0.7rem; background: var(--bg); border: 1px solid var(--line);
     border-radius: 999px; padding: 1px 7px; }
-  .kb-card { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
-    padding: 9px 12px; font-size: 0.875rem; cursor: grab; }
+  .kb-card { background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 14px; font-size: 0.875rem; cursor: grab;
+    transition: border-color 150ms ease, box-shadow 150ms ease; }
+  .kb-card:hover { border-color: var(--green); box-shadow: 0 2px 8px oklch(0.52 0.15 152 / 0.12); }
   .kb-card:active { cursor: grabbing; }
   .kb-col.drag-over { background: oklch(0.93 0.045 152 / 0.3); }
   .kb-empty { font-size: 0.75rem; color: var(--muted); text-align: center;
@@ -181,10 +190,12 @@
     // ── Sidebar ──────────────────────────────────────────────────────────────
     shell.insertAdjacentHTML('beforeend', `
       <nav class="sidebar">
-        <div class="sidebar-label">Workspace</div>
-        <div class="nav-item${currentView === 'home' ? ' active' : ''}" data-nav="home"><span class="nav-icon">⊞</span>Home</div>
-        <div class="nav-item${currentView === 'kanban' ? ' active' : ''}" data-nav="kanban"><span class="nav-icon">⊟</span>Kanban View</div>
-        <div class="nav-item"><span class="nav-icon">⚙</span>Settings</div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Workspace</div>
+          <div class="nav-item${currentView === 'home' ? ' active' : ''}" data-nav="home"><span class="nav-icon">⊞</span>Home</div>
+          <div class="nav-item${currentView === 'kanban' ? ' active' : ''}" data-nav="kanban"><span class="nav-icon">⊟</span>Kanban View</div>
+          <div class="nav-item"><span class="nav-icon">⚙</span>Settings</div>
+        </div>
       </nav>`);
 
     // ── Workspace ────────────────────────────────────────────────────────
