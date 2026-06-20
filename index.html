@@ -6,104 +6,165 @@
 <title>TaskFlow</title>
 <style>
   :root {
-    --bg: oklch(0.95 0.018 95);
-    --surface: oklch(0.985 0.008 95);
-    --bar: oklch(0.96 0.03 150);
-    --ink: oklch(0.22 0.012 140);
-    --muted: oklch(0.47 0.015 130);
-    --line: oklch(0.89 0.012 110);
-    --green: oklch(0.52 0.15 152);
-    --green-deep: oklch(0.4 0.12 152);
-    --green-soft: oklch(0.93 0.045 152);
-    --on-green: oklch(0.98 0.015 150);
+    --bg:          oklch(0.97 0.012 95);
+    --surface:     oklch(0.99 0.006 95);
+    --header-bg:   oklch(0.99 0.005 95);
+    --sidebar-bg:  oklch(0.21 0.016 140);
+    --ink:         oklch(0.22 0.012 140);
+    --ink-inv:     oklch(0.97 0.008 95);
+    --muted:       oklch(0.52 0.018 130);
+    --muted-inv:   oklch(0.65 0.018 140);
+    --line:        oklch(0.9 0.01 110);
+    --line-inv:    oklch(0.31 0.018 140);
+    --green:       oklch(0.52 0.15 152);
+    --green-deep:  oklch(0.4 0.12 152);
+    --green-soft:  oklch(0.93 0.045 152);
+    --on-green:    oklch(0.98 0.01 150);
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; min-height: 100dvh; padding: 24px; display: grid; place-items: center;
-    background: var(--bg); color: var(--ink);
-    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif;
-  }
-  .card {
-    width: min(460px, 100%); background: var(--surface);
-    border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
-    box-shadow: 0 1px 2px oklch(0.2 0.02 140 / 0.05), 0 18px 40px oklch(0.2 0.02 140 / 0.08);
-  }
-  .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 18px 22px; background: var(--bar); border-bottom: 1px solid var(--line); }
-  .brand { display: flex; align-items: center; gap: 12px; }
-  .logo {
-    display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px;
-    background: var(--green); color: var(--on-green); font-size: 1.1rem; font-weight: 700;
-  }
-  h1 { margin: 0; font-size: 1.3rem; letter-spacing: -0.02em; }
-  .tag { margin: 1px 0 0; font-size: 0.8rem; color: var(--muted); }
-  .count {
-    padding: 5px 11px; font-size: 0.8rem; font-weight: 600; color: var(--green-deep);
-    background: var(--green-soft); border-radius: 999px; white-space: nowrap;
-  }
-  .body { padding: 22px; }
-  form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-  label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
-  .row { display: flex; gap: 8px; }
-  input {
-    flex: 1; min-width: 0; padding: 11px 13px; font: inherit; color: var(--ink);
-    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--ink); }
+  #app { display: contents; }
+  .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 52px 1fr; min-height: 100vh; }
+
+  .header { grid-column: 1/-1; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; background: var(--header-bg); border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 10; }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .logo { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px;
+    background: var(--green); color: var(--on-green); font-size: 0.95rem; font-weight: 700; }
+  .brand-name { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
+  .brand-tag { font-size: 0.72rem; color: var(--muted); margin-left: 3px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--green-soft);
+    border: 2px solid var(--green); display: grid; place-items: center;
+    font-size: 0.75rem; font-weight: 700; color: var(--green-deep); }
+
+  .sidebar { grid-column: 1; grid-row: 2; background: var(--sidebar-bg);
+    padding: 18px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .sidebar-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--muted-inv); padding: 0 10px; margin-bottom: 6px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 7px;
+    color: var(--muted-inv); font-size: 0.85rem; cursor: default;
+    transition: background 120ms, color 120ms; }
+  .nav-item:hover { background: var(--line-inv); color: var(--ink-inv); }
+  .nav-item.active { background: oklch(0.28 0.055 152); color: var(--on-green); }
+  .nav-icon { width: 18px; text-align: center; font-size: 0.95rem; }
+
+  .workspace { grid-column: 2; grid-row: 2; padding: 30px 36px; overflow-y: auto; }
+  .ws-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 22px; }
+  .ws-title { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.025em; }
+  .count { padding: 3px 10px; font-size: 0.72rem; font-weight: 600;
+    color: var(--green-deep); background: var(--green-soft); border-radius: 999px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 13px;
+    padding: 20px; max-width: 500px; }
+  form { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  label { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+  .row { display: flex; gap: 7px; }
+  input { flex: 1; min-width: 0; padding: 9px 12px; font: inherit; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
   input::placeholder { color: var(--muted); }
   input:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; border-color: transparent; }
-  button { font: inherit; cursor: pointer; border: 0; border-radius: 10px; }
-  .add { padding: 11px 18px; font-weight: 600; color: var(--on-green); background: var(--green); }
-  .add:hover { filter: brightness(1.06); }
-  .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
-  .tab {
-    padding: 6px 13px; font-size: 0.8rem; font-weight: 600; color: var(--muted);
-    border-radius: 8px; cursor: default; user-select: none;
-  }
+  button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; }
+  .add { padding: 9px 17px; font-weight: 600; color: var(--on-green); background: var(--green); }
+  .add:hover { filter: brightness(1.07); }
+  .tabs { display: flex; gap: 2px; margin-bottom: 14px; }
+  .tab { padding: 5px 11px; font-size: 0.72rem; font-weight: 600; border-radius: 6px;
+    color: var(--muted); cursor: default; user-select: none; }
   .tab.active { color: var(--green-deep); background: var(--green-soft); }
-  #view { min-height: 92px; }
-  .upnext { margin: 0 0 12px; font-size: 0.8rem; font-weight: 600; color: var(--green-deep); }
-  .empty {
-    display: grid; place-items: center; gap: 5px; min-height: 92px; text-align: center;
-    color: var(--muted); border: 1px dashed var(--line); border-radius: 12px;
-  }
-  .empty strong { color: var(--ink); font-size: 1rem; }
-  .empty span { font-size: 0.8rem; }
-  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-  li {
-    display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 14px;
-    background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
-    animation: rise 220ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  li span { flex: 1; min-width: 0; word-break: break-word; }
-  .del {
-    display: grid; place-items: center; width: 30px; height: 30px; flex: none;
-    font-size: 1.15rem; line-height: 1; color: var(--muted);
-    background: transparent; border: 1px solid var(--line);
-  }
+  .upnext { margin-bottom: 11px; font-size: 0.75rem; font-weight: 600; color: var(--green-deep); }
+  .empty { display: grid; place-items: center; gap: 4px; min-height: 84px; text-align: center;
+    color: var(--muted); border: 1px dashed var(--line); border-radius: 9px; }
+  .empty strong { color: var(--ink); font-size: 0.92rem; }
+  .empty span { font-size: 0.75rem; }
+  ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  li { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+    animation: rise 200ms cubic-bezier(0.22, 1, 0.36, 1); }
+  li span { flex: 1; min-width: 0; word-break: break-word; font-size: 0.875rem; }
+  .del { display: grid; place-items: center; width: 27px; height: 27px; flex: none;
+    font-size: 1.05rem; color: var(--muted); background: transparent; border: 1px solid var(--line); }
   .del:hover { color: oklch(0.55 0.2 25); border-color: oklch(0.55 0.2 25 / 0.4); }
-  .foot { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
-    font-size: 0.8rem; color: var(--muted); }
-  @keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .foot { margin-top: 13px; font-size: 0.72rem; color: var(--muted); }
+  @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { li { animation: none; } }
 </style>
 </head>
 <body>
-  <main class="card">
-    <header class="bar">
-      <div class="brand">
-        <span class="logo" aria-hidden="true">&check;</span>
-        <div>
-          <h1>TaskFlow</h1>
-          <p class="tag">Plan less. Do more.</p>
+<div id="app"></div>
+<script>
+  const items = [];
+  let interacted = false;
+  const app = document.getElementById('app');
+
+  // Event delegation — attached once to #app, survives every render()
+  app.addEventListener('submit', (e) => {
+    if (!e.target.matches('#add-form')) return;
+    e.preventDefault();
+    const name = document.getElementById('task-field').value.trim();
+    if (!name) return;
+    items.push({ name });
+    interacted = true;
+    render();
+  });
+
+  app.addEventListener('click', (e) => {
+    const del = e.target.closest('[data-del]');
+    if (!del) return;
+    items.splice(parseInt(del.dataset.del, 10), 1);
+    render();
+  });
+
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+
+  function render() {
+    app.innerHTML = '';   // entire screen — header, sidebar, workspace — blanks here
+
+    // PLANTED BUG: items[0].name on empty array — intentional, do not "fix".
+    const upnext = interacted ? ('Up next: ' + items[0].name) : null;
+
+    const n = items.length;
+    const shell = document.createElement('div');
+    shell.className = 'shell';
+
+    // ── Header ──────────────────────────────────────────────────────────────
+    shell.insertAdjacentHTML('beforeend', `
+      <header class="header">
+        <div class="brand">
+          <span class="logo" aria-hidden="true">✓</span>
+          <span class="brand-name">TaskFlow</span>
+          <span class="brand-tag">— Plan less. Do more.</span>
         </div>
-      </div>
-      <span id="count" class="count">0 tasks</span>
-    </header>
-    <div class="body">
-      <form id="form">
-        <label for="field">New task</label>
+        <div class="avatar" aria-hidden="true">H</div>
+      </header>`);
+
+    // ── Sidebar (aria-hidden — invisible to agent a11y tree) ─────────────
+    shell.insertAdjacentHTML('beforeend', `
+      <nav class="sidebar" aria-hidden="true">
+        <div class="sidebar-label">Workspace</div>
+        <div class="nav-item active"><span class="nav-icon">⊞</span>Home</div>
+        <div class="nav-item"><span class="nav-icon">⊟</span>Kanban View</div>
+        <div class="nav-item"><span class="nav-icon">⚙</span>Settings</div>
+      </nav>`);
+
+    // ── Workspace ────────────────────────────────────────────────────────
+    const ws = document.createElement('main');
+    ws.className = 'workspace';
+    ws.insertAdjacentHTML('beforeend', `
+      <div class="ws-head">
+        <h1 class="ws-title">My Tasks</h1>
+        <span class="count">${plural(n, 'task')}</span>
+      </div>`);
+
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+
+    panel.insertAdjacentHTML('beforeend', `
+      <form id="add-form">
+        <label for="task-field">New task</label>
         <div class="row">
-          <input id="field" type="text" placeholder="New task" autocomplete="off">
+          <input id="task-field" type="text" placeholder="New task" autocomplete="off">
           <button class="add" type="submit">Add</button>
         </div>
       </form>
@@ -111,67 +172,44 @@
         <span class="tab active">All</span>
         <span class="tab">Active</span>
         <span class="tab">Completed</span>
-      </div>
-      <div id="view"></div>
-      <footer id="footer" class="foot">0 items left</footer>
-    </div>
-  </main>
-<script>
-  const items = [];
-  let interacted = false;
-  const view = document.getElementById('view');
-  const form = document.getElementById('form');
-  const field = document.getElementById('field');
-  const count = document.getElementById('count');
-  const footer = document.getElementById('footer');
+      </div>`);
 
-  const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+    if (upnext) {
+      const p = document.createElement('p');
+      p.className = 'upnext';
+      p.textContent = upnext;
+      panel.appendChild(p);
+    }
 
-  function render() {
-    // live counts — read array LENGTH only, never items[0] (must not crash here)
-    count.textContent = plural(items.length, 'task');
-    footer.textContent = plural(items.length, 'item') + ' left';
-    view.innerHTML = '';
-    if (interacted) {
-      const up = document.createElement('p');
-      up.className = 'upnext';
-      // PLANTED BUG: items[0].name on empty array — intentional, do not "fix".
-      up.textContent = 'Up next: ' + items[0].name;
-      view.appendChild(up);
+    if (n === 0) {
+      panel.insertAdjacentHTML('beforeend',
+        '<div class="empty"><strong>No tasks yet</strong><span>Add your first task above.</span></div>');
+    } else {
+      const ul = document.createElement('ul');
+      items.forEach((item, i) => {
+        const li = document.createElement('li');
+        const span = document.createElement('span');
+        span.textContent = item.name;
+        const del = document.createElement('button');
+        del.className = 'del'; del.type = 'button';
+        del.setAttribute('aria-label', 'delete task');
+        del.dataset.del = i;
+        del.textContent = '×';
+        li.append(span, del);
+        ul.appendChild(li);
+      });
+      panel.appendChild(ul);
     }
-    if (items.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'empty';
-      empty.innerHTML = '<strong>No tasks yet</strong><span>Add your first task above.</span>';
-      view.appendChild(empty);
-      return;
-    }
-    const ul = document.createElement('ul');
-    items.forEach((item, i) => {
-      const li = document.createElement('li');
-      const span = document.createElement('span');
-      span.textContent = item.name;
-      const del = document.createElement('button');
-      del.className = 'del';
-      del.type = 'button';
-      del.setAttribute('aria-label', 'delete task');
-      del.textContent = '×';
-      del.addEventListener('click', () => { items.splice(i, 1); render(); });
-      li.append(span, del);
-      ul.appendChild(li);
-    });
-    view.appendChild(ul);
+
+    const foot = document.createElement('p');
+    foot.className = 'foot';
+    foot.textContent = plural(n, 'item') + ' left';
+    panel.appendChild(foot);
+
+    ws.appendChild(panel);
+    shell.appendChild(ws);
+    app.appendChild(shell);
   }
-
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = field.value.trim();
-    if (!name) return;
-    items.push({ name });
-    field.value = '';
-    interacted = true;
-    render();
-  });
 
   render();
 </script>
