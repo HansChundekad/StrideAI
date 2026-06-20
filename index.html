@@ -90,6 +90,19 @@
   @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { li { animation: none; } }
 
+  .status-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+    font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+  .status-badge.s-todo { color: var(--muted); background: var(--bg); border: 1px solid var(--line); }
+  .status-badge.s-inprogress { color: oklch(0.45 0.12 80); background: oklch(0.96 0.04 80); border: 1px solid oklch(0.88 0.06 80); }
+  .status-badge.s-done { color: var(--green-deep); background: var(--green-soft); }
+  .status-btn { display: grid; place-items: center; width: 24px; height: 24px; flex-shrink: 0;
+    background: transparent; border: 0; font-size: 1rem; color: var(--muted); padding: 0;
+    cursor: pointer; border-radius: 50%; }
+  .status-btn:hover { background: var(--bg); color: var(--ink); }
+  .status-btn.s-done { color: var(--green); }
+  .priority-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .task-done { text-decoration: line-through; opacity: 0.5; }
+
   .kb-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 4px; }
   .kb-col { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
     padding: 14px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
@@ -128,6 +141,14 @@
   app.addEventListener('click', (e) => {
     const nav = e.target.closest('[data-nav]');
     if (nav) { currentView = nav.dataset.nav; render(); return; }
+    const cycle = e.target.closest('[data-cycle]');
+    if (cycle) {
+      const i = parseInt(cycle.dataset.cycle, 10);
+      const order = ['todo', 'in-progress', 'done'];
+      items[i].status = order[(order.indexOf(items[i].status) + 1) % 3];
+      render();
+      return;
+    }
     const del = e.target.closest('[data-del]');
     if (!del) return;
     items.splice(parseInt(del.dataset.del, 10), 1);
@@ -208,14 +229,55 @@
         const ul = document.createElement('ul');
         items.forEach((item, i) => {
           const li = document.createElement('li');
+
+          // Priority dot
+          const dot = document.createElement('span');
+          dot.className = 'priority-dot';
+          dot.setAttribute('aria-hidden', 'true');
+          dot.style.background = item.name.includes('!') ? 'oklch(0.55 0.2 25)' : 'var(--line)';
+
+          // Name span
           const span = document.createElement('span');
           span.textContent = item.name;
+          if (item.status === 'done') span.classList.add('task-done');
+
+          // Status badge
+          const badge = document.createElement('span');
+          badge.className = 'status-badge';
+          if (item.status === 'todo') {
+            badge.classList.add('s-todo');
+            badge.textContent = 'To Do';
+          } else if (item.status === 'in-progress') {
+            badge.classList.add('s-inprogress');
+            badge.textContent = 'In Progress';
+          } else {
+            badge.classList.add('s-done');
+            badge.textContent = 'Done';
+          }
+
+          // Cycle button
+          const cycleBtn = document.createElement('button');
+          cycleBtn.className = 'status-btn';
+          cycleBtn.type = 'button';
+          cycleBtn.setAttribute('aria-label', 'cycle status');
+          cycleBtn.dataset.cycle = i;
+          if (item.status === 'todo') {
+            cycleBtn.textContent = '○';
+          } else if (item.status === 'in-progress') {
+            cycleBtn.textContent = '◑';
+          } else {
+            cycleBtn.textContent = '●';
+            cycleBtn.classList.add('s-done');
+          }
+
+          // Delete button
           const del = document.createElement('button');
           del.className = 'del'; del.type = 'button';
           del.setAttribute('aria-label', 'delete task');
           del.dataset.del = i;
           del.textContent = '×';
-          li.append(span, del);
+
+          li.append(dot, span, badge, cycleBtn, del);
           ul.appendChild(li);
         });
         panel.appendChild(ul);
