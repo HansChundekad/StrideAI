@@ -126,6 +126,23 @@
   .kb-col.drag-over { background: oklch(0.93 0.045 152 / 0.3); }
   .kb-empty { font-size: 0.75rem; color: var(--muted); text-align: center;
     padding: 20px 0; font-style: italic; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: oklch(0.15 0.02 140 / 0.45);
+    display: grid; place-items: center; z-index: 100; animation: fadeIn 150ms ease; }
+  .modal { background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 24px; width: min(360px, calc(100vw - 48px));
+    box-shadow: 0 8px 32px oklch(0.2 0.02 140 / 0.2); }
+  .modal-title { font-family: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+    font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .modal-body { font-size: 0.875rem; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .modal-task { font-weight: 600; color: var(--ink); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-cancel { padding: 8px 16px; font-weight: 500; color: var(--ink);
+    background: transparent; border: 1px solid var(--line); font: inherit; cursor: pointer; }
+  .btn-cancel:hover { background: var(--bg); }
+  .btn-danger { padding: 8px 16px; font-weight: 600; color: white;
+    background: oklch(0.55 0.2 25); border: 0; font: inherit; cursor: pointer; }
+  .btn-danger:hover { filter: brightness(1.08); }
 </style>
 </head>
 <body>
@@ -134,6 +151,7 @@
   const items = [];
   let interacted = false;
   let currentView = 'home';
+  let pendingDelete = null;
   const app = document.getElementById('app');
 
   // Event delegation — attached once to #app, survives every render()
@@ -150,6 +168,21 @@
   app.addEventListener('click', (e) => {
     const nav = e.target.closest('[data-nav]');
     if (nav) { currentView = nav.dataset.nav; render(); return; }
+
+    const confirm = e.target.closest('[data-confirm]');
+    if (confirm) {
+      if (confirm.dataset.confirm === 'yes') {
+        items.splice(pendingDelete, 1);
+        pendingDelete = null;
+        render();
+      } else {
+        pendingDelete = null;
+        render();
+      }
+      return;
+    }
+    if (e.target.matches('[data-backdrop]')) { pendingDelete = null; render(); return; }
+
     const cycle = e.target.closest('[data-cycle]');
     if (cycle) {
       const i = parseInt(cycle.dataset.cycle, 10);
@@ -159,9 +192,7 @@
       return;
     }
     const del = e.target.closest('[data-del]');
-    if (!del) return;
-    items.splice(parseInt(del.dataset.del, 10), 1);
-    render();
+    if (del) { pendingDelete = parseInt(del.dataset.del, 10); render(); }
   });
 
   const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
@@ -370,6 +401,43 @@
 
     shell.appendChild(ws);
     app.appendChild(shell);
+
+    if (pendingDelete !== null) {
+      const taskName = items[pendingDelete].name;
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      backdrop.dataset.backdrop = '';
+
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+
+      const title = document.createElement('p');
+      title.className = 'modal-title';
+      title.textContent = 'Delete task?';
+
+      const body = document.createElement('p');
+      body.className = 'modal-body';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'modal-task';
+      nameSpan.textContent = '“' + taskName + '”';
+      body.append('Are you sure you want to delete ', nameSpan, '? This can’t be undone.');
+
+      const actions = document.createElement('div');
+      actions.className = 'modal-actions';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn-cancel'; cancelBtn.type = 'button';
+      cancelBtn.dataset.confirm = 'no'; cancelBtn.textContent = 'No, keep it';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn-danger'; deleteBtn.type = 'button';
+      deleteBtn.dataset.confirm = 'yes'; deleteBtn.textContent = 'Yes, delete';
+
+      actions.append(cancelBtn, deleteBtn);
+      modal.append(title, body, actions);
+      backdrop.appendChild(modal);
+      app.appendChild(backdrop);
+    }
   }
 
   render();
